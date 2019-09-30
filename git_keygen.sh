@@ -1,28 +1,28 @@
 #!/bin/bash
+#set $HOME env 
+if [[ -n $1 ]];then
+HOME="$1"
+echo $HOME
+fi
 # Prompt for email
-echo "Enter a github email: " 
-read github_email
+read -p "Enter a github email: " github_email
 while [[ -z $github_email ]];do
     read -p "Enter an email to continue! > " github_email
 done
-
 # generate new keys
-echo "#Optional: Choose a key name: "  
+echo "Choose a key name OR "  
 read -p "Press [ENTER] to continue with the default [$HOME/.ssh/github_key]  " github_key
 github_key=${github_key:-'github_key'}
 
 ssh-keygen -t rsa -b 4096 -C $github_email -f "$HOME/.ssh/$github_key"
 
-# check for running deamon
-eval "$(ssh-agent -s)"
-if [ $# -ne 0 ]
-    then
-    echo -e '\e[0;31m'"Failed to allocate ssh-agent deamon...please check it manually!"'\e[0m'
-fi
+# check for running deamon and define its env vars
+eval `ssh-agent -s`
+# add key to ssh keychain
+ssh-add $HOME/.ssh/$github_key
 
 # Prompt for username
-echo "Enter a github username: " 
-read github_username
+read -p  "Enter a github username: " github_username
 while [[ -z $github_username ]];do
     read -p "Enter github username > " github_username
 done
@@ -35,7 +35,7 @@ public_key="$(cat $HOME/.ssh/$github_key'.pub')"
 output="$(curl -u "$github_username" -d "{\"title\":\"$HOSTNAME\",\"key\":\"$public_key\" }" $end_point)"
 
 while echo $output | egrep -i -w 'Requires authentication|Bad credentials';do
-    echo "Failed!!-- retry..."
+    echo -e $red"Failed password attempt !! retry..."$reset
 output="$(curl -u "$github_username" -d "{\"title\":\"$HOSTNAME\",\"key\":\"$public_key\" }" $end_point)"
 done
 
