@@ -15,4 +15,7 @@ unzip master.zip && rm -rf master.zip && cd ubuntu_django_server-master
 ### you will be prompt for your credentials as a friendly UI
 ```bash
 ./git_keygen.sh
+
+## or with param:[/home/username] 
+./git_keygen /home/root
 ```

@@ -1,30 +1,22 @@
 #!/bin/bash
-# OUTPUT-COLORING
-red='\e[0;31m'
-green='\e[0;32m'
-reset='\e[0m'
 source ${0%/*}/utils.sh
 echo -e $green"Enter sudo password to start..."$reset
-
 # Update ubuntu
 sudo apt update -y && sudo apt upgrade -y
 echo "Initializing $HOSTNAME setup..."
 # Utils func 
 request_machine_username
 request_app_name
-
 # Add the user
 sudo adduser $username
 # Elevalate sudo priviliges in the root level
 sudo usermod -aG sudo $username
-sudo mkdir -v -p /home/$username/$appname
-if [[ $? -eq 0 ]];then echo -e $red"Folder created $appname"$reset;fi
-sudo chown -R $username:$username /home/$username
-
-
+sudo mkdir -pv /home/$username/$appname
+if [[ $? -eq 0 ]];then echo -e $green"Folder created $appname"$reset;fi
+sudo chown -R $username:$username /home/$username/
+# Expoet env vars
 DJANGO_SECRET_KEY=`openssl rand -base64 48`
 DBPASSWORD=`openssl rand -base64 32`
-
 # export DJANGO_SETTINGS_MODULE=$APPNAME.settings.production # settings file for the app
 # export PYTHONPATH=\$DJANGODIR:\$PYTHONPATH
 export SECRET_KEY="echo $DJANGO_SECRET_KEY"
@@ -41,16 +33,6 @@ sudo -u postgres psql <<EOF
     \q
 EOF
 # Setup python env
-sudo -H pip3 install --upgrade pip
-sudo su $username -c create_python_env /home/$username;
-#back again to script folder
-cd -
-check_git_ssh
-echo -e $green"Github is ready too..."$reset  
-
-# django-admin.py startproject app ~/app
-# nano ~/app/app/settings.py
-#git clone git@github.com:risha700/django-verification.git
-cd /home/$username/$appname
-sudo chown -R `whoami`:`whoami` .
-git clone git@github.com:risha700/animate.scss.git
+create_python_env /home/$username
+check_git_ssh $PWD /home/$username
+install_app_options
