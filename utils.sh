@@ -17,7 +17,7 @@ function check_git_ssh (){
     _git_stat=`ssh -T git@github.com 2>&1`
     if ! echo $_git_stat | egrep -i -w 'Hi|successfully authenticated,';then
         echo -e $green"generating new github ssh keys..."$reset
-        if [[ -z $1 ]];then
+        if [[ $# -eq 0 ]];then
             ${0%/*}/git_keygen.sh
         else
             $1/git_keygen.sh $2
