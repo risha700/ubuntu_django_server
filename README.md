@@ -8,11 +8,14 @@ unzip master.zip && rm -rf master.zip && cd ubuntu_django_server-master
 ### initiate the script
 
 ```bash
-sudo ./server_provision.sh
+./server_provision.sh
 ```
 
 ### optional: generate ssh keys and add it to your github account from the cli 
 ### you will be prompt for your credentials as a friendly UI
 ```bash
 ./git_keygen.sh
+
+## or with param:[/home/username] 
+./git_keygen /home/root
 ```
