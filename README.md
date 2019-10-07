@@ -16,6 +16,17 @@ unzip master.zip && rm -rf master.zip && cd ubuntu_django_server-master
 ```bash
 ./git_keygen.sh
 
-## or with param:[/home/username] 
+# optional param:userpath[/home/username] 
 ./git_keygen /home/root
+```
+### useful debug for github ssh access
+```bash
+# check git permission 
+ssh -T git@github.com
+# 'ssh-agent -s' sometimes it doesn't export the newly generated $SSH_AGENT_PID 
+# this wroks great
+eval `ssh-agent -s`
+# add to keychain if needed
+ssh-add path/.ssh/gitkey
+
 ```
