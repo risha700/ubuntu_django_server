@@ -37,5 +37,4 @@ create_python_env /home/$username
 # TODO :
 # Must be signed in with the desired user shell or manually generate git key like: ./git_keygen.sh
 check_git_ssh $PWD /home/$username
-
 install_app_options

@@ -56,18 +56,34 @@ request_app_name (){
         read appname
     done
 }
-proceed_cloning_git_repo (){
+request_github_repo(){
     echo 'Cool...please enter your repo link [SSH]'
     read -p "Enter repo url [ git@github.com:username/repo.git ]" repo_url
     while [[ -z $repo_url ]];do
         read -p "Repository URL to continue " repo_url
     done
-    git clone $repo_url
 }
 
+prepare_ssh_agent(){
+    eval `ssh-agent -s`
+    echo $SSH_AGENT_PID
+    ssh-add ~/.ssh/github_key
+}
+
+proceed_cloning_git_repo(){
+sudo -H -i -u $username bash -l<<EOF
+    source $PWD/utils.sh
+    prepare_ssh_agent
+    git clone $repo_url
+    add_source_control
+    echo -e "$greenYour github source control is ready..$reset"
+EOF
+}
+
+# FOR TESTING ONLY
 proceed_creating_bare_django_app (){
     echo 'installing django'
-    django-admin.py startproject $appname ~/appname
+    django-admin.py startproject $appname ~/$appname
 
 }
 
@@ -77,7 +93,10 @@ install_app_options (){
     do
         case $opt in
         "Link your github repo")
+        request_github_repo
+        if [[ $? -eq 0 ]];then
         proceed_cloning_git_repo
+        fi
         break
         ;;
         "Install bare django app")
@@ -92,4 +111,29 @@ install_app_options (){
 
         esac
     done
+}
+
+add_source_control(){
+    # set up auto deploy
+    SRC_CTL='app.git'
+    git init --bare $HOME/$SRC_CTL
+    cat > $HOME/$SRC_CTL/hooks/post-receive <<EOF
+        #!/bin/bash
+        TARGET= "echo $HOME/$appname"
+        GIT_DIR= "echo $HOME/$SRC_CTL"
+        BRANCH="master"
+        while read oldrev newrev ref
+        do
+            # only checking out the master (or whatever branch you would like to deploy)
+            if [ "$ref" = "refs/heads/$BRANCH" ];
+            then
+                echo "Ref $ref received. Deploying ${BRANCH} branch to production..."
+                git --work-tree=$TARGET --git-dir=$GIT_DIR checkout -f $BRANCH
+            else
+                echo "Ref $ref received. Doing nothing: only the ${BRANCH} branch may be deployed on this server."
+            fi
+        done
+EOF
+    wait $!
+    sudo chmod +x $HOME/$SRC_CTL/hooks/post-receive
 }
