@@ -14,6 +14,8 @@ sudo usermod -aG sudo $username
 sudo mkdir -pv /home/$username/$appname
 if [[ $? -eq 0 ]];then echo -e $green"Folder created $appname"$reset;fi
 sudo chown -R $username:$username /home/$username/
+# MUST allow UFW OPENssh
+rsync --archive --chown=$username:$username ~/.ssh /home/$username
 # Expoet env vars
 DJANGO_SECRET_KEY=`openssl rand -base64 48`
 DBPASSWORD=`openssl rand -base64 32`

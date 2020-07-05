@@ -3,20 +3,20 @@
 
 if [[ $# -gt 0 ]];then
 HOME="$1"
-echo $HOME
+echo "$HOME"
 fi
 
 # Prompt for email
 prompt_email(){
-    read -p "Enter a github email: " github_email
+    read -r -p "Enter a github email: " github_email
     while [[ -z $github_email ]];do
-        read -p "Enter an email to continue! > " github_email
+        read -r -p "Enter an email to continue! > " github_email
     done
 }
 # generate new keys
 generate_key(){
     echo "Choose a key name OR "  
-    read -p "Press [ENTER] to continue with the default [$HOME/.ssh/github_key]  " github_key
+    read -r -p "Press [ENTER] to continue with the default [$HOME/.ssh/github_key]  " github_key
     github_key=${github_key:-'github_key'}
 
     ssh-keygen -t rsa -b 4096 -C $github_email -f "$HOME/.ssh/$github_key"
@@ -24,17 +24,29 @@ generate_key(){
     # check for running deamon and define its env vars
     eval `ssh-agent -s`
     # add key to ssh keychain
-    ssh-add $HOME/.ssh/$github_key
+    ssh-add "$HOME/.ssh/$github_key"
 
+}
+
+add_ssh_key(){
+    # try to add key to ssh keychain
+    ssh-add -l
+    if [[ $? -eq 0 ]];then
+        ssh-add "$HOME/.ssh/$github_key"
+        echo "Key added to keychain successfully"
+    else
+        eval `ssh-agent -s`
+        ssh-add "$HOME/.ssh/$github_key"
+    fi
 }
 #set arguments
 end_point="https://api.github.com/user/keys"
 
 # Prompt for username
 prompt_git_username(){
-    read -p  "Enter a github username: " github_username
+    read -r -p  "Enter a github username: " github_username
     while [[ -z $github_username ]];do
-        read -p "Enter github username > " github_username
+        read -r -p "Enter github username > " github_username
     done
 }
 
@@ -47,7 +59,7 @@ send_over_to_git(){
     output="$(curl -u "$github_username" -d "{\"title\":\"$HOSTNAME\",\"key\":\"$public_key\" }" $end_point)"
     done
 
-    if [[ $? -eq 0 ]] && echo $output | egrep -i -w 'id|name|key';then
+    if [[ $? -eq 0 ]] && echo "$output" | egrep -i -w 'id|name|key';then
         printf '\e[0;32m'" The public-key %s  has been added successfully to your github account %s\n"'\e[0m' $github_key  $github_username
     fi
 

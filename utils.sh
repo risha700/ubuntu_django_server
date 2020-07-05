@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # OUTPUT-COLORING
 red='\e[0;31m'
 green='\e[0;32m'
@@ -114,13 +115,13 @@ install_app_options (){
 }
 
 add_source_control(){
-    # set up auto deploy
+    # set up auto deploy`
     SRC_CTL='app.git'
     git init --bare $HOME/$SRC_CTL
     cat > $HOME/$SRC_CTL/hooks/post-receive <<EOF
         #!/bin/bash
-        TARGET= "echo $HOME/$appname"
-        GIT_DIR= "echo $HOME/$SRC_CTL"
+        TARGET="echo $HOME/$appname"
+        GIT_DIR="echo $HOME/$SRC_CTL"
         BRANCH="master"
         while read oldrev newrev ref
         do
